@@ -21,18 +21,19 @@ func resourceStatuspageIOComponentGroup() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-
-			"page": {
+			"page_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"components": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -45,10 +46,11 @@ func resourceStatuspageIOComponentGroup() *schema.Resource {
 }
 
 type ComponentGroup struct {
-	ID         string   `json:"id,omitempty"`
-	Page       string   `json:"-"`
-	Name       string   `json:"name"`
-	Components []string `json:"components"`
+	ID          string   `json:"id,omitempty"`
+	PageID      string   `json:"-"`
+	Name        string   `json:"name"`
+	Description string   `json:"description,omitempty"`
+	Components  []string `json:"components"`
 }
 
 type componentGroupCreateReq struct {
@@ -58,12 +60,16 @@ type componentGroupCreateReq struct {
 func buildComponentGroupStruct(d *schema.ResourceData) ComponentGroup {
 	var cg ComponentGroup
 
-	if attr, ok := d.GetOk("page"); ok {
-		cg.Page = attr.(string)
+	if attr, ok := d.GetOk("page_id"); ok {
+		cg.PageID = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("name"); ok {
 		cg.Name = attr.(string)
+	}
+
+	if attr, ok := d.GetOk("description"); ok {
+		cg.Description = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("components"); ok {
@@ -77,6 +83,7 @@ func buildComponentGroupStruct(d *schema.ResourceData) ComponentGroup {
 func refreshComponentGroupResource(d *schema.ResourceData, cg ComponentGroup) {
 	d.SetId(cg.ID)
 	d.Set("name", cg.Name)
+	d.Set("description", cg.Description)
 	d.Set("components", cg.Components)
 }
 
@@ -86,11 +93,11 @@ func resourceStatuspageIOComponentGroupExists(d *schema.ResourceData, meta inter
 	client := meta.(*resty.Client).R()
 	resp, err := client.
 		SetPathParams(map[string]string{
-			"id":   d.Id(),
-			"page": d.Get("page").(string),
+			"id":      d.Id(),
+			"page_id": d.Get("page_id").(string),
 		}).
 		SetError(APIError{}).
-		Get("pages/{page}/component-groups/{id}")
+		Get("pages/{page_id}/component-groups/{id}")
 
 	if err != nil {
 		return false, err
@@ -101,7 +108,7 @@ func resourceStatuspageIOComponentGroupExists(d *schema.ResourceData, meta inter
 			log.Printf("[DEBUG] component group: %s not found - %s", d.Id(), resp.Error())
 			return false, nil
 		}
-		return false, fmt.Errorf("error checking existence of component group: %s - %s %s", d.Id(), resp.StatusCode(), resp.Error())
+		return false, fmt.Errorf("error checking existence of component group: %s - %d %s", d.Id(), resp.StatusCode(), resp.Error())
 
 	}
 
@@ -119,9 +126,9 @@ func resourceStatuspageIOComponentGroupCreate(d *schema.ResourceData, meta inter
 		SetResult(&cg).
 		SetError(APIError{}).
 		SetPathParams(map[string]string{
-			"page": d.Get("page").(string),
+			"page_id": d.Get("page_id").(string),
 		}).
-		Post("pages/{page}/component-groups")
+		Post("pages/{page_id}/component-groups")
 
 	if err != nil {
 		return fmt.Errorf("error creating component group: %s", err.Error())
@@ -141,12 +148,12 @@ func resourceStatuspageIOComponentGroupRead(d *schema.ResourceData, meta interfa
 	cg := ComponentGroup{}
 	resp, err := client.
 		SetPathParams(map[string]string{
-			"id":   d.Id(),
-			"page": d.Get("page").(string),
+			"id":      d.Id(),
+			"page_id": d.Get("page_id").(string),
 		}).
 		SetResult(&cg).
 		SetError(APIError{}).
-		Get("pages/{page}/component-groups/{id}")
+		Get("pages/{page_id}/component-groups/{id}")
 
 	if err != nil {
 		return err
@@ -167,13 +174,13 @@ func resourceStatuspageIOComponentGroupUpdate(d *schema.ResourceData, meta inter
 
 	resp, err := client.
 		SetPathParams(map[string]string{
-			"id":   d.Id(),
-			"page": d.Get("page").(string),
+			"id":      d.Id(),
+			"page_id": d.Get("page_id").(string),
 		}).
 		SetBody(componentGroupCreateReq{ComponentGroup: cg}).
 		SetResult(&cg).
 		SetError(APIError{}).
-		Patch("pages/{page}/component-groups/{id}")
+		Patch("pages/{page_id}/component-groups/{id}")
 
 	if err != nil {
 		return fmt.Errorf("error updating component group: %s", err.Error())
@@ -192,11 +199,11 @@ func resourceStatuspageIOComponentGroupDelete(d *schema.ResourceData, meta inter
 
 	resp, err := client.
 		SetPathParams(map[string]string{
-			"id":   d.Id(),
-			"page": d.Get("page").(string),
+			"id":      d.Id(),
+			"page_id": d.Get("page_id").(string),
 		}).
 		SetError(APIError{}).
-		Delete("pages/{page}/component-groups/{id}")
+		Delete("pages/{page_id}/component-groups/{id}")
 
 	if err != nil {
 		return err

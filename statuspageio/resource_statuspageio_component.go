@@ -21,39 +21,32 @@ func resourceStatuspageIOComponent() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-
-			"page": {
+			"page_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-
 			"status": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "operational",
 			},
-
 			"showcase": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-
 			"only_show_if_degraded": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-
 			"group_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -64,7 +57,7 @@ func resourceStatuspageIOComponent() *schema.Resource {
 
 type Component struct {
 	ID                 string `json:"id,omitempty"`
-	Page               string `json:"-"`
+	PageID             string `json:"-"`
 	Name               string `json:"name"`
 	Description        string `json:"description,omitempty"`
 	Status             string `json:"status"`
@@ -80,8 +73,8 @@ type componentCreateReq struct {
 func buildComponentStruct(d *schema.ResourceData) Component {
 	var component Component
 
-	if attr, ok := d.GetOk("page"); ok {
-		component.Page = attr.(string)
+	if attr, ok := d.GetOk("page_id"); ok {
+		component.PageID = attr.(string)
 	}
 
 	if attr, ok := d.GetOk("name"); ok {
@@ -128,10 +121,10 @@ func resourceStatuspageIOComponentExists(d *schema.ResourceData, meta interface{
 	resp, err := client.
 		SetPathParams(map[string]string{
 			"component_id": d.Id(),
-			"page":         d.Get("page").(string),
+			"page_id":      d.Get("page_id").(string),
 		}).
 		SetError(APIError{}).
-		Get("pages/{page}/components/{component_id}")
+		Get("pages/{page_id}/components/{component_id}")
 
 	if err != nil {
 		return false, err
@@ -160,9 +153,9 @@ func resourceStatuspageIOComponentCreate(d *schema.ResourceData, meta interface{
 		SetResult(&component).
 		SetError(APIError{}).
 		SetPathParams(map[string]string{
-			"page": d.Get("page").(string),
+			"page_id": d.Get("page_id").(string),
 		}).
-		Post("pages/{page}/components")
+		Post("pages/{page_id}/components")
 
 	if err != nil {
 		return fmt.Errorf("error creating component: %s", err.Error())
@@ -183,11 +176,11 @@ func resourceStatuspageIOComponentRead(d *schema.ResourceData, meta interface{})
 	resp, err := client.
 		SetPathParams(map[string]string{
 			"component_id": d.Id(),
-			"page":         d.Get("page").(string),
+			"page_id":      d.Get("page_id").(string),
 		}).
 		SetResult(&component).
 		SetError(APIError{}).
-		Get("pages/{page}/components/{component_id}")
+		Get("pages/{page_id}/components/{component_id}")
 
 	if err != nil {
 		return err
@@ -209,12 +202,12 @@ func resourceStatuspageIOComponentUpdate(d *schema.ResourceData, meta interface{
 	resp, err := client.
 		SetPathParams(map[string]string{
 			"component_id": d.Id(),
-			"page":         d.Get("page").(string),
+			"page_id":      d.Get("page_id").(string),
 		}).
 		SetBody(componentCreateReq{Component: component}).
 		SetResult(&component).
 		SetError(APIError{}).
-		Patch("pages/{page}/components/{component_id}")
+		Patch("pages/{page_id}/components/{component_id}")
 
 	if err != nil {
 		return fmt.Errorf("error updating component: %s", err.Error())
@@ -234,10 +227,10 @@ func resourceStatuspageIOComponentDelete(d *schema.ResourceData, meta interface{
 	resp, err := client.
 		SetPathParams(map[string]string{
 			"component_id": d.Id(),
-			"page":         d.Get("page").(string),
+			"page_id":      d.Get("page_id").(string),
 		}).
 		SetError(APIError{}).
-		Delete("pages/{page}/components/{component_id}")
+		Delete("pages/{page_id}/components/{component_id}")
 
 	if err != nil {
 		return err

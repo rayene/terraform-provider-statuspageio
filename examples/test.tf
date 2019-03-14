@@ -17,7 +17,8 @@ provider "statuspageio" {
 
 resource "statuspageio_component_group" "group0" {
   name = "my group 0" 
-  page = "${var.statuspageio_page}"
+  description = "foo group"
+  page_id = "${var.statuspageio_page}"
   components = [
     "${statuspageio_component.component1.id}",
     "${statuspageio_component.component0.id}"
@@ -26,10 +27,12 @@ resource "statuspageio_component_group" "group0" {
 
 resource "statuspageio_component" "component0" {
   name = "my component 0" 
-  page = "${var.statuspageio_page}"
+  description = "foo component 0"
+  page_id = "${var.statuspageio_page}"
 }
 
 resource "statuspageio_component" "component1" {
   name = "my component 1" 
-  page = "${var.statuspageio_page}"
+  description = "foo component 1"
+  page_id = "${var.statuspageio_page}"
 }
