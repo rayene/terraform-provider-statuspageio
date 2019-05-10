@@ -49,7 +49,7 @@ type ComponentGroup struct {
 	ID          string   `json:"id,omitempty"`
 	PageID      string   `json:"-"`
 	Name        string   `json:"name"`
-	Description string   `json:"description,omitempty"`
+	Description string   `json:"description"`
 	Components  []string `json:"components"`
 }
 

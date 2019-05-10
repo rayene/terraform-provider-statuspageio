@@ -59,7 +59,7 @@ type Component struct {
 	ID                 string `json:"id,omitempty"`
 	PageID             string `json:"-"`
 	Name               string `json:"name"`
-	Description        string `json:"description,omitempty"`
+	Description        string `json:"description"`
 	Status             string `json:"status"`
 	Showcase           bool   `json:"showcase"`
 	OnlyShowIfDegraded bool   `json:"only_show_if_degraded"`
